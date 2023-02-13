@@ -17,28 +17,30 @@ public class Database {
             System.err.println("Failed to load SQLite JDBC driver.");
             e.printStackTrace();
         }
-        File resourcesFolder = new File("src/main/resources");
-        String dbFilePath = new File(resourcesFolder, "to-do-list.db").getAbsolutePath();
+
+
         // Connect to the in-memory database
 
         try {
-            connection = DriverManager.getConnection("jdbc:sqlite:" + dbFilePath);
-            //connection = DriverManager.getConnection("jdbc:sqlite::memory:");
+            connection = DriverManager.getConnection("jdbc:sqlite::resource:to-do-list.db");
+            System.out.println("done");
         } catch (SQLException e) {
             System.err.println("Failed to connect to the in-memory SQLite database.");
             e.printStackTrace();
 
         }
-        int flag = 0;
-        // Execute the SQL statements contained in the string
-        Statement statement = null;
+
         URL resource = getClass().getResource("/schema.sql");
         //Initialize the script runner
         ScriptRunner sr = new ScriptRunner(connection);
-        //Creating a reader object
-        Reader reader = new BufferedReader(new FileReader(resource.getFile()));
+
+        try (InputStream in = getClass().getResourceAsStream("/schema.sql");
+             BufferedReader reader = new BufferedReader(new InputStreamReader(in))) {
+            // Use resource
+            sr.runScript(reader);
+        }
         //Running the script
-        sr.runScript(reader);
+
 
         try {
             state = connection.createStatement();
